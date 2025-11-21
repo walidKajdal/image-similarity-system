@@ -32,17 +32,23 @@ cd image-similarity-system
 pip install -r requirements.txt
 ```
 
+3. Configurez l'API Kaggle :
+   - Créez un compte sur [Kaggle](https://www.kaggle.com/)
+   - Allez dans votre profil > Account > API > Create New API Token
+   - Téléchargez le fichier `kaggle.json`
+   - Placez-le dans `~/.kaggle/kaggle.json` (Linux/Mac) ou `C:\Users\<USERNAME>\.kaggle\kaggle.json` (Windows)
+   - Ou exécutez `kaggle config set` pour configurer manuellement
+
 ## Utilisation
 
-1. Modifiez le chemin du dataset dans le script `image_similarity.py` :
-```python
-dataset_path = "chemin/vers/votre/dataset/"
-```
+Le dataset sera automatiquement téléchargé depuis Kaggle lors de la première exécution (si configuré).
 
-2. Exécutez le script :
+1. Exécutez le script :
 ```bash
 python image_similarity.py
 ```
+
+Le système téléchargera automatiquement le dataset d'images d'animaux (chats, chiens, pandas) depuis Kaggle si nécessaire, ou utilisera le dataset placé manuellement dans `archive/`.
 
 ## Configuration
 

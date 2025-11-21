@@ -12,12 +12,12 @@ class ImageSimilaritySystem:
     et différentes métriques de similarité.
     """
     
-    def __init__(self, dataset_path, image_size=(128, 128)):
+    def __init__(self, dataset_path="archive/animals/", image_size=(128, 128)):
         """
         Initialise le système de recherche d'images.
-        
+
         Args:
-            dataset_path: Chemin vers le dossier contenant les images
+            dataset_path: Chemin vers le dossier contenant les images (par défaut: archive/animals/)
             image_size: Taille de redimensionnement des images (largeur, hauteur)
         """
         self.dataset_path = dataset_path
@@ -26,6 +26,51 @@ class ImageSimilaritySystem:
         self.image_paths = []
         self.features = None
         self.scaler = StandardScaler()
+
+        # Télécharger le dataset si nécessaire
+        self._download_dataset_if_needed()
+
+    def _download_dataset_if_needed(self):
+        """
+        Télécharge le dataset depuis Kaggle si le dossier n'existe pas ou est vide.
+        """
+        # Vérifier si le dossier existe et contient des images
+        has_images = False
+        if os.path.exists(self.dataset_path):
+            supported_formats = ('.jpg', '.jpeg', '.png', '.bmp')
+            for root, dirs, files in os.walk(self.dataset_path):
+                for file in files:
+                    if file.lower().endswith(supported_formats):
+                        has_images = True
+                        break
+                if has_images:
+                    break
+
+        if not has_images:
+            print("📥 Téléchargement du dataset depuis Kaggle...")
+            start_time = time.time()
+            try:
+                # Créer le dossier parent si nécessaire
+                os.makedirs(os.path.dirname(self.dataset_path), exist_ok=True)
+
+                # Télécharger le dataset
+                import kaggle
+                kaggle.api.dataset_download_files(
+                    'ashishsaxena2209/animal-image-datasetdog-cat-and-panda',
+                    path=os.path.dirname(self.dataset_path),
+                    unzip=True
+                )
+
+                elapsed = time.time() - start_time
+                print(f"✅ Dataset téléchargé dans {self.dataset_path} en {elapsed:.2f}s")
+
+            except Exception as e:
+                print(f"❌ Erreur lors du téléchargement: {e}")
+                print("Vérifiez que vous avez configuré votre API Kaggle (kaggle.json)")
+                print("Ou placez manuellement le dataset dans le dossier archive/")
+                raise
+        else:
+            print("✅ Dataset déjà présent")
         
     def load_dataset(self):
         """
@@ -77,15 +122,19 @@ class ImageSimilaritySystem:
     def extract_features(self, method='histogram'):
         """
         Extrait les caractéristiques des images.
-        
+
         Args:
             method: 'histogram' pour histogramme de couleurs
                    'raw' pour pixels bruts aplatis
                    'color_moments' pour moments statistiques de couleur
         """
+        if len(self.images) == 0:
+            print("⚠️  Aucune image trouvée dans le dataset. Impossible d'extraire les features.")
+            return
+
         print(f"🎯 Extraction des features (méthode: {method})...")
         start_time = time.time()
-        
+
         if method == 'histogram':
             # Histogramme de couleurs RGB (32 bins par canal)
             features_list = []
@@ -96,11 +145,11 @@ class ImageSimilaritySystem:
                 features = np.concatenate([hist_r, hist_g, hist_b])
                 features_list.append(features)
             self.features = np.array(features_list)
-            
+
         elif method == 'raw':
             # Pixels bruts aplatis
             self.features = self.images.reshape(len(self.images), -1)
-            
+
         elif method == 'color_moments':
             # Moments statistiques (moyenne, variance, skewness) par canal
             features_list = []
@@ -114,10 +163,10 @@ class ImageSimilaritySystem:
                     moments.extend([mean, std, skew])
                 features_list.append(moments)
             self.features = np.array(features_list)
-        
+
         # Normalisation des features
         self.features = self.scaler.fit_transform(self.features)
-        
+
         elapsed = time.time() - start_time
         print(f"✅ Features extraites: {self.features.shape} en {elapsed:.2f}s")
         
