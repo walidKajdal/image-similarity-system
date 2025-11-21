@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Image Similarity System
 
 Un système de recherche d'images similaires utilisant l'extraction de caractéristiques et différentes métriques de similarité.
@@ -94,6 +93,3 @@ Ce projet est sous licence MIT.
 ## Auteur
 
 Walid Kajdal
-=======
-# image-similarity-system
->>>>>>> 25
